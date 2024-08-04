@@ -1,0 +1,25 @@
+body {
+  height: 100vh;
+  background: rgb(25 22 36);
+}
+
+.form-container {
+}
+
+.title,
+.slogan {
+  text-align: center;
+}
+
+.btn {
+  width: 100%;
+}
+
+.auth-image {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.alert {
+  margin-bottom: 1.5rem;
+}
