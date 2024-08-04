@@ -33,6 +33,11 @@ const PlayerComponent = () => {
   };
 
   useEffect(() => {
+    // Scroll to top whenever a new video is loaded
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [video]);
+
+  useEffect(() => {
     console.log("Video:", video);
     console.log("All Videos:", allVideos);
     console.log("Suggested Videos:", suggestedVideos);
@@ -64,16 +69,16 @@ const PlayerComponent = () => {
         )}
         <h1 className="mt-2">{video?.name}</h1>
       </div>
-      <div className="mt-8 max-w-4xl mx-auto">
+      <div className="mt-8">
         <h2 className="text-lg font-bold mb-4">Suggested Videos</h2>
         <div className="flex flex-wrap gap-5">
           {suggestedVideos.map((suggestedVideo, index) => (
             <div
               key={index}
-              className="w-[280px] cursor-pointer"
+              className="w-screen md:w-[350px] cursor-pointer"
               onClick={() => handleVideoSelect(suggestedVideo)}
             >
-              <div className="border bg-gray-400 w-full h-[150px] rounded-md overflow-hidden">
+              <div className="border bg-gray-400 w-full h-[220px] md:w-[350px] rounded-md overflow-hidden">
                 <img
                   src={suggestedVideo.thumbnail || "default-thumbnail.jpg"}
                   alt={suggestedVideo.name}

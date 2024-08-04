@@ -61,9 +61,9 @@ const Story = () => {
   return (
     <div className="text-white mb-[100px]">
       <Header />
-      <div className="pb-5 pl-5">
+      <div className="pb-5 ">
         <h1 className="text-sm font-bold text-gray-400">Latest Stories</h1>
-        <div className="mt-2 flex justify-center items-center flex-wrap gap-5">
+        <div className="mt-2 flex justify-center items-center flex-wrap ">
           {loading ? (
             <Loading />
           ) : stories.length === 0 ? (
@@ -72,7 +72,7 @@ const Story = () => {
             stories.map((story, index) => (
               <div
                 key={index}
-                className="relative w-[280px] h-[200px] cursor-pointer"
+                className="relative p-2 pr-3 pl-3 w-screen h-[220px] cursor-pointer"
                 onClick={() => handleStoryClick(story)}
               >
                 <div className="border bg-gray-400 w-full h-full rounded-md overflow-hidden">

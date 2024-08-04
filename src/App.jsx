@@ -21,6 +21,7 @@ import Header from "./common/Header";
 import Story from "./components/Story";
 import StoryPlayer from "./components/StoryPlayer";
 import StoryAdmin from "./components/StoryAdmin";
+import ScrollToTop from "./common/ScrollToTop";
 
 const App = () => {
   const { isAuthenticated, userData } = useAuth();
@@ -30,6 +31,7 @@ const App = () => {
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="min-h-screen flex flex-col justify-between">
         <div className="flex-grow">
           <Routes>

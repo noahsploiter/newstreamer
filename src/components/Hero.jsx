@@ -65,8 +65,8 @@ const Hero = () => {
   return (
     <div className="text-white mb-[100px]">
       <Header />
-      <div className="pb-5 pl-5">
-        <h1 className="text-sm font-bold text-gray-400">Latest videos</h1>
+      <div className="">
+        <h1 className="text-sm font-bold text-gray-400 ml-2">Latest videos</h1>
         <div className="mt-2 flex justify-center items-center flex-wrap gap-5">
           {loading ? (
             <Loading />
@@ -76,10 +76,10 @@ const Hero = () => {
             videos.map((video, index) => (
               <div
                 key={index}
-                className="relative w-[280px] h-[200px] cursor-pointer"
+                className="relative w-screen md:w-[450px] h-[220px] md:h-[250px] cursor-pointer pr-4 pl-4"
                 onClick={() => handleVideoClick(video)}
               >
-                <div className="border bg-gray-400 w-full h-full rounded-md overflow-hidden">
+                <div className="border  bg-gray-400 w-full h-full rounded-md overflow-hidden">
                   {video.thumbnail ? (
                     <img
                       src={video.thumbnail}

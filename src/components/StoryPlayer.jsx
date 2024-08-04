@@ -25,12 +25,17 @@ const StoryPlayer = () => {
     setLoading(false);
   };
 
+  // Auto scroll to the top whenever a new story is selected
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [video]);
+
   // Filter out the currently playing video from the list of all stories
   const suggestedStories = allStories.filter((v) => v.url !== video?.url);
 
   const handleStorySelect = (selectedStory) => {
     setLoading(true); // Show loading spinner when selecting a new video
-    navigate("/story-player", { state: { video: selectedStory, allStories } });
+    navigate("/storyplayer", { state: { video: selectedStory, allStories } });
   };
 
   return (
@@ -42,7 +47,7 @@ const StoryPlayer = () => {
         <IoArrowBack className="mr-2" />
         Back
       </button>
-      <div className="w-full flex justify-center flex-col max-w-4xl mx-auto">
+      <div className="w-full flex justify-center items-center flex-col max-w-4xl mx-auto">
         {loading && <Loading />}
         {video && (
           <Player
@@ -65,10 +70,10 @@ const StoryPlayer = () => {
           {suggestedStories.map((suggestedStory, index) => (
             <div
               key={index}
-              className="w-[280px] cursor-pointer"
+              className="w-screen cursor-pointer"
               onClick={() => handleStorySelect(suggestedStory)}
             >
-              <div className="border bg-gray-400 w-full h-[150px] rounded-md overflow-hidden">
+              <div className="border bg-gray-400 w-full h-[220px] rounded-md overflow-hidden">
                 <img
                   src={suggestedStory.thumbnail || "default-thumbnail.jpg"}
                   alt={suggestedStory.name}
