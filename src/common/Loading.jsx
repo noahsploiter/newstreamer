@@ -6,8 +6,8 @@ const Loading = () => {
     <div>
       <FidgetSpinner
         visible={true}
-        height="80"
-        width="80"
+        height="30"
+        width="30"
         ariaLabel="fidget-spinner-loading"
         wrapperClass="fidget-spinner-wrapper"
       />

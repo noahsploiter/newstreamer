@@ -1,99 +1,94 @@
 import React, { useState, useEffect } from "react";
 import { ref, listAll, getDownloadURL, getMetadata } from "firebase/storage";
-import { storage } from "../firebase";
+import { storage } from "../firebase"; // Ensure this imports your initialized Firebase storage
 import { useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
 import Loading from "../common/Loading";
 import { IoPlayCircle } from "react-icons/io5";
-import { FaTelegram } from "react-icons/fa";
 import Header from "../common/Header";
 
-const Hero = () => {
-  const [videos, setVideos] = useState([]);
+const Story = () => {
+  const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    let isMounted = true; // Flag to track component mount status
+    let isMounted = true; // Flag to prevent state updates if the component is unmounted
 
-    const fetchVideos = async () => {
+    const fetchStories = async () => {
       try {
-        const folderRef = ref(storage, "videos");
-        const videoRefs = await listAll(folderRef);
-        const videoDetails = await Promise.all(
-          videoRefs.items.map(async (itemRef) => {
-            const videoURL = await getDownloadURL(itemRef);
+        const folderRef = ref(storage, "storys"); // Ensure this matches your actual folder name
+        const storyRefs = await listAll(folderRef);
+        const storyDetails = await Promise.all(
+          storyRefs.items.map(async (itemRef) => {
+            const storyURL = await getDownloadURL(itemRef);
             const metadata = await getMetadata(itemRef);
-            const videoTitle = metadata.customMetadata?.title || "New Video";
-            const thumbnailURL = metadata.customMetadata?.thumbnail;
+            const storyTitle = metadata.customMetadata?.title || "New Story";
+            const thumbnailURL =
+              metadata.customMetadata?.thumbnail || "default-thumbnail.jpg"; // Fallback thumbnail
 
             return {
-              url: videoURL,
-              name: videoTitle,
+              url: storyURL,
+              name: storyTitle,
               thumbnail: thumbnailURL,
             };
           })
         );
 
         if (isMounted) {
-          setVideos(videoDetails); // Update state only if component is mounted
+          setStories(storyDetails);
         }
       } catch (error) {
-        console.error("Error fetching videos: ", error);
+        console.error("Error fetching stories: ", error);
       } finally {
         if (isMounted) {
-          setLoading(false); // Update state only if component is mounted
+          setLoading(false);
         }
       }
     };
 
-    fetchVideos();
+    fetchStories();
 
     return () => {
-      isMounted = false; // Cleanup function to set the flag to false
+      isMounted = false; // Cleanup to prevent state updates after unmounting
     };
   }, []);
 
-  const handleVideoClick = (video) => {
-    navigate("/player", { state: { video, allVideos: videos } }); // Pass all videos
-  };
-
-  const handleTelegramClick = () => {
-    window.open("https://t.me/ikeepmyword1", "_blank");
+  const handleStoryClick = (story) => {
+    navigate("/storyplayer", { state: { video: story, allStories: stories } });
   };
 
   return (
     <div className="text-white mb-[100px]">
       <Header />
       <div className="pb-5 pl-5">
-        <h1 className="text-sm font-bold text-gray-400">Latest videos</h1>
+        <h1 className="text-sm font-bold text-gray-400">Latest Stories</h1>
         <div className="mt-2 flex justify-center items-center flex-wrap gap-5">
           {loading ? (
             <Loading />
-          ) : videos.length === 0 ? (
-            <p>No videos available</p>
+          ) : stories.length === 0 ? (
+            <p>No stories available</p>
           ) : (
-            videos.map((video, index) => (
+            stories.map((story, index) => (
               <div
                 key={index}
                 className="relative w-[280px] h-[200px] cursor-pointer"
-                onClick={() => handleVideoClick(video)}
+                onClick={() => handleStoryClick(story)}
               >
                 <div className="border bg-gray-400 w-full h-full rounded-md overflow-hidden">
-                  {video.thumbnail ? (
+                  {story.thumbnail ? (
                     <img
-                      src={video.thumbnail}
-                      alt={video.name}
+                      src={story.thumbnail}
+                      alt={story.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <ReactPlayer
-                      url={video.url}
-                      light={video.thumbnail}
+                      url={story.url}
+                      light={true} // Use light mode with thumbnail
                       playing={false}
                       width="100%"
                       height="100%"
-                      controls
                       playIcon={
                         <div className="absolute inset-0 flex items-center justify-center">
                           <IoPlayCircle className="text-white text-6xl" />
@@ -102,7 +97,7 @@ const Hero = () => {
                     />
                   )}
                   <h1 className="absolute bottom-2 left-2 text-white bg-black bg-opacity-50 px-2 py-1 rounded">
-                    {video.name}
+                    {story.name}
                   </h1>
                 </div>
               </div>
@@ -110,16 +105,8 @@ const Hero = () => {
           )}
         </div>
       </div>
-
-      {/* Telegram Icon */}
-      <div
-        className="fixed bottom-[100px] right-5 cursor-pointer bg-blue-500 rounded-full p-3 shadow-lg"
-        onClick={handleTelegramClick}
-      >
-        <FaTelegram className="text-white text-xl" />
-      </div>
     </div>
   );
 };
 
-export default Hero;
+export default Story;

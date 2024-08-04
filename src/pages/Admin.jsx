@@ -101,6 +101,9 @@ const Admin = () => {
             <Button block onClick={() => navigate("/contents")}>
               Contents
             </Button>
+            <Button block onClick={() => navigate("/storyadmin")}>
+              Story
+            </Button>
           </div>
         )}
         <Button onClick={logout} className="mb-2">

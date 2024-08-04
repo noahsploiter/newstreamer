@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FaHome, FaRandom, FaUser } from "react-icons/fa";
+import { MdLiveTv } from "react-icons/md";
 
 const Footer = () => {
   const location = useLocation();
@@ -18,13 +19,13 @@ const Footer = () => {
         <FaHome className="text-2xl" />
         <span className="text-sm">Home</span>
       </Link>
-      {/* <Link
-        to="/shuffle"
-        className={`flex flex-col items-center ${getLinkClass("/shuffle")}`}
+      <Link
+        to="/story"
+        className={`flex flex-col items-center ${getLinkClass("/story")}`}
       >
-        <FaRandom className="text-2xl" />
-        <span className="text-sm">Shuffle</span>
-      </Link> */}
+        <MdLiveTv className="text-2xl" />
+        <span className="text-sm">Story</span>
+      </Link>
       <Link
         to="/profile"
         className={`flex flex-col items-center ${getLinkClass("/profile")}`}

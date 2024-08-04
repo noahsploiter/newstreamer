@@ -3,13 +3,14 @@ import { IoArrowBack } from "react-icons/io5";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Player, BigPlayButton, ControlBar, LoadingSpinner } from "video-react";
 import "video-react/dist/video-react.css"; // Ensure this CSS is properly imported
-import Loading from "../common/Loading";
+import Loading from "../common/Loading"; // Assuming you have a Loading component
 
-const PlayerComponent = () => {
+const StoryPlayer = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { video, allVideos = [] } = location.state || {};
+  // Destructure the video and allStories from the location state
+  const { video, allStories = [] } = location.state || {};
 
   const [loading, setLoading] = useState(true);
 
@@ -24,19 +25,13 @@ const PlayerComponent = () => {
     setLoading(false);
   };
 
-  // Filter out the currently playing video from the list of all videos
-  const suggestedVideos = allVideos.filter((v) => v.url !== video?.url);
+  // Filter out the currently playing video from the list of all stories
+  const suggestedStories = allStories.filter((v) => v.url !== video?.url);
 
-  const handleVideoSelect = (selectedVideo) => {
+  const handleStorySelect = (selectedStory) => {
     setLoading(true); // Show loading spinner when selecting a new video
-    navigate("/player", { state: { video: selectedVideo, allVideos } });
+    navigate("/story-player", { state: { video: selectedStory, allStories } });
   };
-
-  useEffect(() => {
-    console.log("Video:", video);
-    console.log("All Videos:", allVideos);
-    console.log("Suggested Videos:", suggestedVideos);
-  }, [video, allVideos, suggestedVideos]);
 
   return (
     <div className="text-white p-5 mb-[100px]">
@@ -65,22 +60,22 @@ const PlayerComponent = () => {
         <h1 className="mt-2">{video?.name}</h1>
       </div>
       <div className="mt-8 max-w-4xl mx-auto">
-        <h2 className="text-lg font-bold mb-4">Suggested Videos</h2>
+        <h2 className="text-lg font-bold mb-4">Suggested Stories</h2>
         <div className="flex flex-wrap gap-5">
-          {suggestedVideos.map((suggestedVideo, index) => (
+          {suggestedStories.map((suggestedStory, index) => (
             <div
               key={index}
               className="w-[280px] cursor-pointer"
-              onClick={() => handleVideoSelect(suggestedVideo)}
+              onClick={() => handleStorySelect(suggestedStory)}
             >
               <div className="border bg-gray-400 w-full h-[150px] rounded-md overflow-hidden">
                 <img
-                  src={suggestedVideo.thumbnail || "default-thumbnail.jpg"}
-                  alt={suggestedVideo.name}
+                  src={suggestedStory.thumbnail || "default-thumbnail.jpg"}
+                  alt={suggestedStory.name}
                   className="w-full h-full object-cover"
                 />
                 <h3 className="text-white mt-2">
-                  {suggestedVideo.name || "No Title Available"}
+                  {suggestedStory.name || "No Title Available"}
                 </h3>
               </div>
             </div>
@@ -91,4 +86,4 @@ const PlayerComponent = () => {
   );
 };
 
-export default PlayerComponent;
+export default StoryPlayer;
