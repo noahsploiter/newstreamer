@@ -1,5 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { ref, listAll, getDownloadURL, getMetadata } from "firebase/storage";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  ref,
+  listAll,
+  getDownloadURL,
+  getMetadata,
+  uploadString,
+} from "firebase/storage";
 import { storage } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
@@ -12,10 +18,10 @@ const Hero = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const playerRef = useRef(null);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    let isMounted = true; // Flag to track component mount status
-
     const fetchVideos = async () => {
       try {
         const folderRef = ref(storage, "videos");
@@ -35,31 +41,45 @@ const Hero = () => {
           })
         );
 
-        if (isMounted) {
-          setVideos(videoDetails); // Update state only if component is mounted
-        }
+        setVideos(videoDetails);
       } catch (error) {
         console.error("Error fetching videos: ", error);
       } finally {
-        if (isMounted) {
-          setLoading(false); // Update state only if component is mounted
-        }
+        setLoading(false);
       }
     };
 
     fetchVideos();
-
-    return () => {
-      isMounted = false; // Cleanup function to set the flag to false
-    };
   }, []);
 
   const handleVideoClick = (video) => {
-    navigate("/player", { state: { video, allVideos: videos } }); // Pass all videos
+    navigate("/player", { state: { video, allVideos: videos } });
   };
 
   const handleTelegramClick = () => {
     window.open("https://t.me/ikeepmyword1", "_blank");
+  };
+
+  // Capture a frame from the video and create a thumbnail
+  const captureFrame = () => {
+    const player = playerRef.current.getInternalPlayer();
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+    context.drawImage(player, 0, 0, canvas.width, canvas.height);
+
+    const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
+    console.log("Thumbnail generated:", thumbnailDataUrl);
+
+    // Optional: upload thumbnail to Firebase Storage
+    const uploadThumbnail = async (thumbnailDataUrl, video) => {
+      const storageRef = ref(storage, `thumbnails/${video.name}.jpg`);
+      await uploadString(storageRef, thumbnailDataUrl, "data_url");
+      console.log(`Thumbnail uploaded for ${video.name}`);
+    };
+
+    // Assuming you call this function with the current video
+    // You can manage this within your player controls or hooks
+    uploadThumbnail(thumbnailDataUrl, video); // video is the current video object
   };
 
   return (
@@ -79,29 +99,23 @@ const Hero = () => {
                 className="relative w-screen md:w-[450px] h-[220px] md:h-[250px] cursor-pointer pr-4 pl-4"
                 onClick={() => handleVideoClick(video)}
               >
-                <div className="border  bg-gray-400 w-full h-full rounded-md overflow-hidden">
-                  {video.thumbnail ? (
-                    <img
-                      src={video.thumbnail}
-                      alt={video.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <ReactPlayer
-                      url={video.url}
-                      light={video.thumbnail}
-                      playing={false}
-                      width="100%"
-                      height="100%"
-                      controls
-                      playIcon={
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <IoPlayCircle className="text-white text-6xl" />
-                        </div>
-                      }
-                    />
-                  )}
-                  <h1 className="absolute bottom-2 left-2 text-white bg-black bg-opacity-50 px-2 py-1 rounded">
+                <div className="border bg-gray-400 w-full h-full rounded-md overflow-hidden">
+                  <ReactPlayer
+                    ref={playerRef}
+                    url={video.url}
+                    light={video.thumbnail || true}
+                    playing={false}
+                    width="100%"
+                    height="100%"
+                    controls={false}
+                    playIcon={
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <IoPlayCircle className="text-white text-6xl" />
+                      </div>
+                    }
+                    onStart={captureFrame} // Capture frame when video starts
+                  />
+                  <h1 className="absolute bottom-2 left-5 text-white bg-black bg-opacity-50 px-2 py-1 rounded">
                     {video.name}
                   </h1>
                 </div>
@@ -110,6 +124,14 @@ const Hero = () => {
           )}
         </div>
       </div>
+
+      {/* Canvas for capturing video frame */}
+      <canvas
+        ref={canvasRef}
+        width="320"
+        height="240"
+        style={{ display: "none" }}
+      ></canvas>
 
       {/* Telegram Icon */}
       <div
