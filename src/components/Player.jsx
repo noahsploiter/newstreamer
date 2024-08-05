@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IoArrowBack } from "react-icons/io5";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Player, BigPlayButton, ControlBar, LoadingSpinner } from "video-react";
@@ -12,6 +12,11 @@ const PlayerComponent = () => {
   const { video, allVideos = [] } = location.state || {};
 
   const [loading, setLoading] = useState(true);
+  const [capturedThumbnail, setCapturedThumbnail] = useState(
+    video?.thumbnail || null
+  );
+  const playerRef = useRef(null);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     if (!video) {
@@ -22,6 +27,25 @@ const PlayerComponent = () => {
 
   const handleCanPlay = () => {
     setLoading(false);
+  };
+
+  // Capture a frame from the video and create a thumbnail
+  const captureFrame = () => {
+    const player = playerRef.current.getInternalPlayer();
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+
+    // Ensure the video has been loaded and has dimensions
+    if (player.videoWidth && player.videoHeight) {
+      canvas.width = player.videoWidth;
+      canvas.height = player.videoHeight;
+      context.drawImage(player, 0, 0, canvas.width, canvas.height);
+
+      const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
+      console.log("Thumbnail generated:", thumbnailDataUrl);
+
+      setCapturedThumbnail(thumbnailDataUrl);
+    }
   };
 
   // Filter out the currently playing video from the list of all videos
@@ -56,10 +80,12 @@ const PlayerComponent = () => {
         {loading && <Loading />}
         {video && (
           <Player
+            ref={playerRef}
             src={video.url}
             autoPlay
             fluid
             onCanPlay={handleCanPlay}
+            onStart={captureFrame} // Capture frame when video starts
             className={`w-full ${loading ? "hidden" : ""}`}
           >
             <BigPlayButton position="center" />
@@ -80,7 +106,11 @@ const PlayerComponent = () => {
             >
               <div className="border bg-gray-400 w-full h-[220px] md:w-[350px] rounded-md overflow-hidden">
                 <img
-                  src={suggestedVideo.thumbnail || "default-thumbnail.jpg"}
+                  src={
+                    suggestedVideo.thumbnail ||
+                    capturedThumbnail ||
+                    "default-thumbnail.jpg"
+                  }
                   alt={suggestedVideo.name}
                   className="w-full h-full object-cover"
                 />
@@ -92,6 +122,9 @@ const PlayerComponent = () => {
           ))}
         </div>
       </div>
+
+      {/* Canvas for capturing video frame */}
+      <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
     </div>
   );
 };
