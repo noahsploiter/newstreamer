@@ -21,6 +21,15 @@ const Hero = () => {
 
   const VIDEOS_PER_PAGE = 4; // Number of videos to fetch per batch
 
+  // Shuffle function
+  const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
+
   const fetchVideos = async () => {
     setLoading(true);
     setError(false);
@@ -46,8 +55,11 @@ const Hero = () => {
         })
       );
 
-      setVideos((prevVideos) => [...prevVideos, ...videoDetails]);
-      setAllFetched(videoDetails.length < VIDEOS_PER_PAGE); // Check if all videos are fetched
+      // Shuffle videos before setting them in state
+      const shuffledVideos = shuffleArray(videoDetails);
+
+      setVideos((prevVideos) => [...prevVideos, ...shuffledVideos]);
+      setAllFetched(shuffledVideos.length < VIDEOS_PER_PAGE); // Check if all videos are fetched
     } catch (error) {
       console.error("Error fetching videos: ", error);
       setError(true);
