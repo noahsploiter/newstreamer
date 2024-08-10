@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { IoArrowBack } from "react-icons/io5";
+import { IoArrowBack, IoShareOutline } from "react-icons/io5"; // Import the share icon
 import { useLocation, useNavigate } from "react-router-dom";
 import { Player, BigPlayButton, ControlBar, LoadingSpinner } from "video-react";
 import "video-react/dist/video-react.css"; // Ensure this CSS is properly imported
@@ -67,6 +67,25 @@ const PlayerComponent = () => {
     console.log("Suggested Videos:", suggestedVideos);
   }, [video, allVideos, suggestedVideos]);
 
+  const handleShare = async () => {
+    const shareData = {
+      title: video?.name || "Check out this video!",
+      text: "Watch this amazing video:",
+      url: window.location.href, // Share the current page URL
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        navigator.clipboard.writeText(shareData.url);
+        alert("Link copied to clipboard");
+      }
+    } catch (err) {
+      console.error("Error sharing", err);
+    }
+  };
+
   return (
     <div className="text-white p-5 mb-[100px]">
       <button
@@ -94,6 +113,13 @@ const PlayerComponent = () => {
           </Player>
         )}
         <h1 className="mt-2">{video?.name}</h1>
+        <button
+          onClick={handleShare}
+          className="flex items-center mt-4 p-2 bg-blue-600 rounded-md"
+        >
+          <IoShareOutline className="mr-2" />
+          Share Video
+        </button>
       </div>
       <div className="mt-8">
         <h2 className="text-lg font-bold mb-4">Suggested Videos</h2>

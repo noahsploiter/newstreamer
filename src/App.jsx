@@ -32,6 +32,7 @@ const App = () => {
   return (
     <Router>
       <ScrollToTop />
+      {isAuthenticated && <Header />}
       <div className="min-h-screen flex flex-col justify-between">
         <div className="flex-grow">
           <Routes>
@@ -103,8 +104,8 @@ const App = () => {
             />
           </Routes>
         </div>
-        {isAuthenticated && <Header />}
-        {isAuthenticated && <Footer />}
+        {isAuthenticated && !isAdmin && <Footer />}{" "}
+        {/* Render Footer only for non-admin users */}
         {isAuthenticated && <UserStatusManager />}
       </div>
     </Router>

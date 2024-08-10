@@ -84,7 +84,6 @@ const Hero = () => {
 
   return (
     <div className="text-white mb-[100px]">
-      <Header />
       <div className="pt-5">
         <h1 className="text-sm font-bold text-gray-400 ml-2">Latest videos</h1>
         <div className="mt-2 flex justify-center items-center flex-wrap gap-5 min-h-screen">
