@@ -9,7 +9,7 @@ import {
   uploadBytesResumable,
   updateMetadata,
 } from "firebase/storage";
-import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineEdit, AiOutlineCheck } from "react-icons/ai";
 import { Spin } from "antd";
 import Loading from "../common/Loading";
 
@@ -21,6 +21,8 @@ const Contents = () => {
   const [sortOption, setSortOption] = useState("recent");
   const [totalSizeInMB, setTotalSizeInMB] = useState(0);
   const [uploadingVideos, setUploadingVideos] = useState({});
+  const [editingTitle, setEditingTitle] = useState(null);
+  const [newTitle, setNewTitle] = useState("");
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -179,6 +181,34 @@ const Contents = () => {
     }
   };
 
+  const startEditingTitle = (video) => {
+    setEditingTitle(video.ref.fullPath);
+    setNewTitle(video.name);
+  };
+
+  const saveTitle = async (video) => {
+    try {
+      await updateMetadata(video.ref, {
+        customMetadata: {
+          title: newTitle,
+          thumbnail: video.thumbnail,
+        },
+      });
+
+      setVideos((prevVideos) =>
+        prevVideos.map((v) =>
+          v.ref === video.ref ? { ...v, name: newTitle } : v
+        )
+      );
+
+      setEditingTitle(null);
+      alert("Title updated successfully.");
+    } catch (err) {
+      console.error("Error updating title:", err);
+      alert("Failed to update title.");
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 text-white mb-[100px]">
       <h1 className="text-2xl font-bold mb-4 text-center">Video Contents</h1>
@@ -223,13 +253,29 @@ const Contents = () => {
                   )}
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <div>
-                    <p
-                      className="font-semibold truncate text-black"
-                      title={video.name}
-                    >
-                      {video.name}
-                    </p>
+                  <div className="flex flex-col">
+                    {editingTitle === video.ref.fullPath ? (
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          value={newTitle}
+                          onChange={(e) => setNewTitle(e.target.value)}
+                          className="p-1 rounded border border-gray-300 text-black"
+                        />
+                        <AiOutlineCheck
+                          onClick={() => saveTitle(video)}
+                          className="text-blue-500 ml-2 cursor-pointer"
+                        />
+                      </div>
+                    ) : (
+                      <p
+                        className="font-semibold truncate text-black cursor-pointer"
+                        title={video.name}
+                        onClick={() => startEditingTitle(video)}
+                      >
+                        {video.name}
+                      </p>
+                    )}
                     <p className="text-gray-500">{video.sizeInMB} MB</p>
                   </div>
                   <div className="flex items-center space-x-2">
