@@ -11,12 +11,11 @@ import Header from "../common/Header";
 const Hero = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(0); // Initialize page state
   const [allFetched, setAllFetched] = useState(false);
   const [error, setError] = useState(false);
   const navigate = useNavigate();
   const playerRef = useRef(null);
-  const canvasRef = useRef(null);
   const observer = useRef(null);
 
   const VIDEOS_PER_PAGE = 4; // Number of videos to fetch per batch
@@ -36,12 +35,9 @@ const Hero = () => {
     try {
       const folderRef = ref(storage, "videos");
       const videoRefs = await listAll(folderRef);
-      const startIndex = page * VIDEOS_PER_PAGE;
-      const endIndex = startIndex + VIDEOS_PER_PAGE;
-      const slicedVideoRefs = videoRefs.items.slice(startIndex, endIndex);
 
       const videoDetails = await Promise.all(
-        slicedVideoRefs.map(async (itemRef) => {
+        videoRefs.items.map(async (itemRef) => {
           const videoURL = await getDownloadURL(itemRef);
           const metadata = await getMetadata(itemRef);
           const videoTitle = metadata.customMetadata?.title || "New Video";
@@ -55,11 +51,8 @@ const Hero = () => {
         })
       );
 
-      // Shuffle videos before setting them in state
       const shuffledVideos = shuffleArray(videoDetails);
-
-      setVideos((prevVideos) => [...prevVideos, ...shuffledVideos]);
-      setAllFetched(shuffledVideos.length < VIDEOS_PER_PAGE); // Check if all videos are fetched
+      setVideos(shuffledVideos);
     } catch (error) {
       console.error("Error fetching videos: ", error);
       setError(true);
@@ -70,7 +63,7 @@ const Hero = () => {
 
   useEffect(() => {
     fetchVideos();
-  }, [page]);
+  }, []);
 
   const handleVideoClick = (video) => {
     navigate("/player", { state: { video, allVideos: videos } });
@@ -85,14 +78,19 @@ const Hero = () => {
       if (loading) return;
       if (observer.current) observer.current.disconnect();
       observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && !allFetched) {
+        if (
+          entries[0].isIntersecting &&
+          videos.length > page * VIDEOS_PER_PAGE
+        ) {
           setPage((prevPage) => prevPage + 1);
         }
       });
       if (node) observer.current.observe(node);
     },
-    [loading, allFetched]
+    [loading, videos, page]
   );
+
+  const paginatedVideos = videos.slice(0, (page + 1) * VIDEOS_PER_PAGE);
 
   return (
     <div className="text-white mb-[100px]">
@@ -102,12 +100,12 @@ const Hero = () => {
           {videos.length === 0 && !loading && !error ? (
             <p className="text-gray-500">No videos available</p>
           ) : (
-            videos.map((video, index) => (
+            paginatedVideos.map((video, index) => (
               <div
                 key={index}
-                className="relative w-screen md:w-[450px] h-[220px] md:h-[250px] cursor-pointer pr-4 pl-4 transition-transform duration-300 "
+                className="relative w-screen md:w-[450px] h-[220px] md:h-[250px] cursor-pointer pr-4 pl-4 transition-transform duration-300"
                 onClick={() => handleVideoClick(video)}
-                ref={videos.length === index + 1 ? lastVideoRef : null} // Attach ref to the last video
+                ref={paginatedVideos.length === index + 1 ? lastVideoRef : null}
               >
                 <div className="border bg-gray-400 w-full h-full rounded-md overflow-hidden">
                   <ReactPlayer
@@ -149,14 +147,6 @@ const Hero = () => {
           </div>
         )}
       </div>
-
-      {/* Canvas for capturing video frame */}
-      <canvas
-        ref={canvasRef}
-        width="320"
-        height="240"
-        style={{ display: "none" }}
-      ></canvas>
 
       {/* Telegram Icon */}
       <div

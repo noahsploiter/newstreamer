@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { IoArrowBack, IoShareOutline } from "react-icons/io5"; // Import the share icon
+import { IoArrowBack, IoShareOutline } from "react-icons/io5";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Player, BigPlayButton, ControlBar, LoadingSpinner } from "video-react";
-import "video-react/dist/video-react.css"; // Ensure this CSS is properly imported
+import { Player, BigPlayButton, ControlBar } from "video-react";
+import "video-react/dist/video-react.css";
 import Loading from "../common/Loading";
 
 const PlayerComponent = () => {
@@ -21,7 +21,7 @@ const PlayerComponent = () => {
   useEffect(() => {
     if (!video) {
       console.error("Video is undefined! Navigating back.");
-      navigate(-1); // Navigate back if no video is found
+      navigate(-1);
     }
   }, [video, navigate]);
 
@@ -29,13 +29,11 @@ const PlayerComponent = () => {
     setLoading(false);
   };
 
-  // Capture a frame from the video and create a thumbnail
   const captureFrame = () => {
     const player = playerRef.current.getInternalPlayer();
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
-    // Ensure the video has been loaded and has dimensions
     if (player.videoWidth && player.videoHeight) {
       canvas.width = player.videoWidth;
       canvas.height = player.videoHeight;
@@ -48,30 +46,32 @@ const PlayerComponent = () => {
     }
   };
 
-  // Filter out the currently playing video from the list of all videos
-  const suggestedVideos = allVideos.filter((v) => v.url !== video?.url);
+  const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
+
+  const suggestedVideos = shuffleArray(
+    allVideos.filter((v) => v.url !== video?.url)
+  );
 
   const handleVideoSelect = (selectedVideo) => {
-    setLoading(true); // Show loading spinner when selecting a new video
+    setLoading(true);
     navigate("/player", { state: { video: selectedVideo, allVideos } });
   };
 
   useEffect(() => {
-    // Scroll to top whenever a new video is loaded
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [video]);
-
-  useEffect(() => {
-    console.log("Video:", video);
-    console.log("All Videos:", allVideos);
-    console.log("Suggested Videos:", suggestedVideos);
-  }, [video, allVideos, suggestedVideos]);
 
   const handleShare = async () => {
     const shareData = {
       title: video?.name || "Check out this video!",
       text: "Watch this amazing video:",
-      url: window.location.href, // Share the current page URL
+      url: window.location.href,
     };
 
     try {
@@ -95,8 +95,14 @@ const PlayerComponent = () => {
         <IoArrowBack className="mr-2" />
         Back
       </button>
-      <div className="w-full flex justify-center flex-col max-w-4xl mx-auto">
-        {loading && <Loading />}
+      <div className="w-full flex justify-center flex-col max-w-4xl mx-auto relative">
+        {loading && (
+          <div className="absolute h-[230px] rounded-md inset-0 flex items-center justify-center bg-black z-10">
+            <div className="text-center">
+              <p className="mt-3 text-white">Loading video...</p>
+            </div>
+          </div>
+        )}
         {video && (
           <Player
             ref={playerRef}
@@ -104,12 +110,12 @@ const PlayerComponent = () => {
             autoPlay
             fluid
             onCanPlay={handleCanPlay}
-            onStart={captureFrame} // Capture frame when video starts
+            onStart={captureFrame}
             className={`w-full ${loading ? "hidden" : ""}`}
+            poster={video.thumbnail || capturedThumbnail}
           >
             <BigPlayButton position="center" />
             <ControlBar autoHide={true} />
-            {loading && <LoadingSpinner />}
           </Player>
         )}
         <h1 className="mt-2">{video?.name}</h1>
@@ -121,7 +127,9 @@ const PlayerComponent = () => {
           Share Video
         </button>
       </div>
-      <div className="mt-8">
+      <div className="mt-10">
+        {" "}
+        {/* Add a larger margin-top here */}
         <h2 className="text-lg font-bold mb-4">Suggested Videos</h2>
         <div className="flex flex-wrap gap-5">
           {suggestedVideos.map((suggestedVideo, index) => (
@@ -149,7 +157,6 @@ const PlayerComponent = () => {
         </div>
       </div>
 
-      {/* Canvas for capturing video frame */}
       <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
     </div>
   );

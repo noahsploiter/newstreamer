@@ -60,7 +60,6 @@ const Story = () => {
 
   return (
     <div className="text-white mb-[100px]">
-      <Header />
       <div className="pb-5 ">
         <h1 className="text-sm font-bold text-gray-400">Latest Stories</h1>
         <div className="mt-2 flex justify-center items-center flex-wrap ">
