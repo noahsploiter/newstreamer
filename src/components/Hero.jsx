@@ -6,12 +6,11 @@ import ReactPlayer from "react-player";
 import Loading from "../common/Loading";
 import { IoPlayCircle, IoRefresh } from "react-icons/io5";
 import { FaTelegram } from "react-icons/fa";
-import Header from "../common/Header";
 
 const Hero = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0); // Initialize page state
+  const [page, setPage] = useState(0);
   const [allFetched, setAllFetched] = useState(false);
   const [error, setError] = useState(false);
   const navigate = useNavigate();
@@ -20,15 +19,6 @@ const Hero = () => {
 
   const VIDEOS_PER_PAGE = 4; // Number of videos to fetch per batch
 
-  // Shuffle function
-  const shuffleArray = (array) => {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  };
-
   const fetchVideos = async () => {
     setLoading(true);
     setError(false);
@@ -36,8 +26,15 @@ const Hero = () => {
       const folderRef = ref(storage, "videos");
       const videoRefs = await listAll(folderRef);
 
+      // Calculate the start and end index based on the current page
+      const startIndex = page * VIDEOS_PER_PAGE;
+      const endIndex = startIndex + VIDEOS_PER_PAGE;
+
+      // Get only the required video references for the current page
+      const slicedVideoRefs = videoRefs.items.slice(startIndex, endIndex);
+
       const videoDetails = await Promise.all(
-        videoRefs.items.map(async (itemRef) => {
+        slicedVideoRefs.map(async (itemRef) => {
           const videoURL = await getDownloadURL(itemRef);
           const metadata = await getMetadata(itemRef);
           const videoTitle = metadata.customMetadata?.title || "New Video";
@@ -51,8 +48,13 @@ const Hero = () => {
         })
       );
 
-      const shuffledVideos = shuffleArray(videoDetails);
-      setVideos(shuffledVideos);
+      // Append new videos to the existing list
+      setVideos((prevVideos) => [...prevVideos, ...videoDetails]);
+
+      // Check if all videos have been fetched
+      if (videoDetails.length < VIDEOS_PER_PAGE) {
+        setAllFetched(true);
+      }
     } catch (error) {
       console.error("Error fetching videos: ", error);
       setError(true);
@@ -63,7 +65,7 @@ const Hero = () => {
 
   useEffect(() => {
     fetchVideos();
-  }, []);
+  }, [page]); // Fetch videos whenever the page changes
 
   const handleVideoClick = (video) => {
     navigate("/player", { state: { video, allVideos: videos } });
@@ -78,34 +80,29 @@ const Hero = () => {
       if (loading) return;
       if (observer.current) observer.current.disconnect();
       observer.current = new IntersectionObserver((entries) => {
-        if (
-          entries[0].isIntersecting &&
-          videos.length > page * VIDEOS_PER_PAGE
-        ) {
+        if (entries[0].isIntersecting && !allFetched) {
           setPage((prevPage) => prevPage + 1);
         }
       });
       if (node) observer.current.observe(node);
     },
-    [loading, videos, page]
+    [loading, allFetched]
   );
-
-  const paginatedVideos = videos.slice(0, (page + 1) * VIDEOS_PER_PAGE);
 
   return (
     <div className="text-white mb-[100px]">
       <div className="pt-5">
         <h1 className="text-sm font-bold text-gray-400 ml-2">Latest videos</h1>
-        <div className="mt-2 flex justify-center items-center flex-wrap gap-5 min-h-screen">
+        <div className="mt-2 flex justify-center items-center flex-wrap gap-5">
           {videos.length === 0 && !loading && !error ? (
             <p className="text-gray-500">No videos available</p>
           ) : (
-            paginatedVideos.map((video, index) => (
+            videos.map((video, index) => (
               <div
                 key={index}
                 className="relative w-screen md:w-[450px] h-[220px] md:h-[250px] cursor-pointer pr-4 pl-4 transition-transform duration-300"
                 onClick={() => handleVideoClick(video)}
-                ref={paginatedVideos.length === index + 1 ? lastVideoRef : null}
+                ref={videos.length === index + 1 ? lastVideoRef : null}
               >
                 <div className="border bg-gray-400 w-full h-full rounded-md overflow-hidden">
                   <ReactPlayer

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -22,12 +22,30 @@ import Story from "./components/Story";
 import StoryPlayer from "./components/StoryPlayer";
 import StoryAdmin from "./components/StoryAdmin";
 import ScrollToTop from "./common/ScrollToTop";
+import AgeVerificationModal from "./components/AgeVerificationModal"; // Import the modal
 
 const App = () => {
   const { isAuthenticated, userData } = useAuth();
+  const [isAgeVerified, setIsAgeVerified] = useState(false);
 
   // Example of role-based route access
   const isAdmin = userData?.role === "admin";
+
+  useEffect(() => {
+    const ageVerified = localStorage.getItem("isAgeVerified");
+    if (ageVerified) {
+      setIsAgeVerified(true);
+    }
+  }, []);
+
+  const handleAgeVerification = () => {
+    setIsAgeVerified(true);
+    localStorage.setItem("isAgeVerified", "true");
+  };
+
+  if (!isAgeVerified) {
+    return <AgeVerificationModal onConfirm={handleAgeVerification} />;
+  }
 
   return (
     <Router>
