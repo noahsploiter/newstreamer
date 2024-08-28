@@ -3,6 +3,7 @@ import { Button } from "antd";
 import { useAuth } from "../contexts/AuthContext";
 import Footer from "../common/Footer";
 import ProfilePicture from "../common/ProfilePictures";
+import Address from "../common/Address";
 
 const Profile = () => {
   const { userData, logout } = useAuth();
@@ -31,6 +32,9 @@ const Profile = () => {
         <Button onClick={logout} className="mt-4">
           Logout
         </Button>
+        <div>
+          <Address />
+        </div>
       </div>
       <Footer />
     </div>

@@ -72,7 +72,7 @@ const Hero = () => {
   };
 
   const handleTelegramClick = () => {
-    window.open("https://t.me/ikeepmyword1", "_blank");
+    window.open("https://t.me/habeshanxsupportbot", "_blank");
   };
 
   const lastVideoRef = useCallback(
