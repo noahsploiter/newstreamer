@@ -6,18 +6,28 @@ import ReactPlayer from "react-player";
 import Loading from "../common/Loading";
 import { IoPlayCircle, IoRefresh } from "react-icons/io5";
 import { FaTelegram } from "react-icons/fa";
+import Header from "../common/Header";
 
 const Hero = () => {
   const [videos, setVideos] = useState([]);
+  const [shuffledVideos, setShuffledVideos] = useState([]); // Store all shuffled videos
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(0); // Initialize page state
   const [allFetched, setAllFetched] = useState(false);
   const [error, setError] = useState(false);
   const navigate = useNavigate();
-  const playerRef = useRef(null);
   const observer = useRef(null);
 
-  const VIDEOS_PER_PAGE = 4; // Number of videos to fetch per batch
+  const VIDEOS_PER_PAGE = 4; // Number of videos to display per page
+
+  // Shuffle function
+  const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
 
   const fetchVideos = async () => {
     setLoading(true);
@@ -26,15 +36,8 @@ const Hero = () => {
       const folderRef = ref(storage, "videos");
       const videoRefs = await listAll(folderRef);
 
-      // Calculate the start and end index based on the current page
-      const startIndex = page * VIDEOS_PER_PAGE;
-      const endIndex = startIndex + VIDEOS_PER_PAGE;
-
-      // Get only the required video references for the current page
-      const slicedVideoRefs = videoRefs.items.slice(startIndex, endIndex);
-
       const videoDetails = await Promise.all(
-        slicedVideoRefs.map(async (itemRef) => {
+        videoRefs.items.map(async (itemRef) => {
           const videoURL = await getDownloadURL(itemRef);
           const metadata = await getMetadata(itemRef);
           const videoTitle = metadata.customMetadata?.title || "New Video";
@@ -48,11 +51,15 @@ const Hero = () => {
         })
       );
 
-      // Append new videos to the existing list
-      setVideos((prevVideos) => [...prevVideos, ...videoDetails]);
+      // Shuffle all videos initially
+      const shuffledVideos = shuffleArray(videoDetails);
+      setShuffledVideos(shuffledVideos); // Store shuffled videos
 
-      // Check if all videos have been fetched
-      if (videoDetails.length < VIDEOS_PER_PAGE) {
+      // Set initial state with the first page of shuffled videos
+      setVideos(shuffledVideos.slice(0, VIDEOS_PER_PAGE));
+
+      // Check if all videos have been fetched initially
+      if (shuffledVideos.length <= VIDEOS_PER_PAGE) {
         setAllFetched(true);
       }
     } catch (error) {
@@ -65,14 +72,37 @@ const Hero = () => {
 
   useEffect(() => {
     fetchVideos();
-  }, [page]); // Fetch videos whenever the page changes
+  }, []); // Fetch videos on initial load
+
+  useEffect(() => {
+    if (page === 0) return; // No need to fetch on initial load
+
+    // Load more videos from shuffledVideos
+    const loadMoreVideos = () => {
+      const startIndex = page * VIDEOS_PER_PAGE;
+      const endIndex = startIndex + VIDEOS_PER_PAGE;
+
+      // Paginate through the shuffled list
+      setVideos((prevVideos) => [
+        ...prevVideos,
+        ...shuffledVideos.slice(startIndex, endIndex),
+      ]);
+
+      // Check if all videos have been fetched
+      if (shuffledVideos.length <= endIndex) {
+        setAllFetched(true);
+      }
+    };
+
+    loadMoreVideos();
+  }, [page]); // Load more videos whenever the page changes
 
   const handleVideoClick = (video) => {
     navigate("/player", { state: { video, allVideos: videos } });
   };
 
   const handleTelegramClick = () => {
-    window.open("https://t.me/habeshanxsupportbot", "_blank");
+    window.open("https://t.me/ikeepmyword1", "_blank");
   };
 
   const lastVideoRef = useCallback(
@@ -106,7 +136,6 @@ const Hero = () => {
               >
                 <div className="border bg-gray-400 w-full h-full rounded-md overflow-hidden">
                   <ReactPlayer
-                    ref={playerRef}
                     url={video.url}
                     light={video.thumbnail || true}
                     playing={false}
