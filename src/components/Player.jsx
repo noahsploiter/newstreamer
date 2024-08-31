@@ -15,6 +15,7 @@ const PlayerComponent = () => {
   const [capturedThumbnail, setCapturedThumbnail] = useState(
     video?.thumbnail || null
   );
+  const [showShareOptions, setShowShareOptions] = useState(false);
   const playerRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -70,7 +71,7 @@ const PlayerComponent = () => {
   const handleShare = async () => {
     const shareData = {
       title: video?.name || "Check out this video!",
-      text: "Watch this amazing video:",
+      text: `Watch this amazing video: ${video?.name}`,
       url: window.location.href,
     };
 
@@ -79,11 +80,23 @@ const PlayerComponent = () => {
         await navigator.share(shareData);
       } else {
         navigator.clipboard.writeText(shareData.url);
-        alert("Link copied to clipboard");
+        alert("Link copied to clipboard!");
       }
     } catch (err) {
       console.error("Error sharing", err);
     }
+  };
+
+  const toggleShareOptions = () => {
+    setShowShareOptions(!showShareOptions);
+  };
+
+  const handleShareViaEmail = () => {
+    const subject = encodeURIComponent(video?.name || "Check out this video!");
+    const body = encodeURIComponent(
+      `I wanted to share this video with you: ${window.location.href}`
+    );
+    window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
   };
 
   return (
@@ -123,12 +136,48 @@ const PlayerComponent = () => {
         )}
         <h1 className="mt-2">{video?.name}</h1>
         <button
-          onClick={handleShare}
+          onClick={toggleShareOptions}
           className="flex items-center mt-4 p-2 bg-blue-600 rounded-md"
         >
           <IoShareOutline className="mr-2" />
           Share Video
         </button>
+
+        {/* Share Options Modal */}
+        {showShareOptions && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-5 rounded-md text-black w-80">
+              <h2 className="text-lg font-bold mb-4">Share this Video</h2>
+              <button
+                onClick={handleShare}
+                className="block w-full p-2 mb-2 bg-blue-500 rounded-md text-white"
+              >
+                Share via Native Share
+              </button>
+              <button
+                onClick={handleShareViaEmail}
+                className="block w-full p-2 mb-2 bg-green-500 rounded-md text-white"
+              >
+                Share via Email
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert("Link copied to clipboard!");
+                }}
+                className="block w-full p-2 mb-2 bg-gray-500 rounded-md text-white"
+              >
+                Copy Link
+              </button>
+              <button
+                onClick={toggleShareOptions}
+                className="block w-full p-2 bg-red-500 rounded-md text-white"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       <div className="mt-10">
         <h2 className="text-lg font-bold mb-4">Suggested Videos</h2>
