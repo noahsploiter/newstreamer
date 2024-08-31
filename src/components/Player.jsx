@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { IoArrowBack, IoShareOutline } from "react-icons/io5";
+import { IoArrowBack, IoShareOutline, IoPlayCircle } from "react-icons/io5";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Player, BigPlayButton, ControlBar } from "video-react";
 import "video-react/dist/video-react.css";
@@ -96,27 +96,30 @@ const PlayerComponent = () => {
         Back
       </button>
       <div className="w-full flex justify-center flex-col max-w-4xl mx-auto relative">
-        {loading && (
-          <div className="absolute h-[230px] rounded-md inset-0 flex items-center justify-center bg-black z-10">
-            <div className="text-center">
-              <p className="mt-3 text-white">Loading video...</p>
-            </div>
-          </div>
-        )}
         {video && (
-          <Player
-            ref={playerRef}
-            src={video.url}
-            autoPlay
-            fluid
-            onCanPlay={handleCanPlay}
-            onStart={captureFrame}
-            className={`w-full ${loading ? "hidden" : ""}`}
-            poster={video.thumbnail || capturedThumbnail}
-          >
-            <BigPlayButton position="center" />
-            <ControlBar autoHide={true} />
-          </Player>
+          <div className="relative">
+            <Player
+              ref={playerRef}
+              src={video.url}
+              autoPlay
+              fluid
+              onCanPlay={handleCanPlay}
+              onStart={captureFrame}
+              className={`w-full ${loading ? "opacity-50" : "opacity-100"}`}
+              poster={video.thumbnail || capturedThumbnail}
+            >
+              <BigPlayButton position="center" />
+              <ControlBar autoHide={true} />
+            </Player>
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                <div className="text-center">
+                  <Loading />
+                  <p className="mt-3 text-white">Loading video...</p>
+                </div>
+              </div>
+            )}
+          </div>
         )}
         <h1 className="mt-2">{video?.name}</h1>
         <button
@@ -128,14 +131,12 @@ const PlayerComponent = () => {
         </button>
       </div>
       <div className="mt-10">
-        {" "}
-        {/* Add a larger margin-top here */}
         <h2 className="text-lg font-bold mb-4">Suggested Videos</h2>
         <div className="flex flex-wrap gap-5">
           {suggestedVideos.map((suggestedVideo, index) => (
             <div
               key={index}
-              className="w-screen md:w-[350px] cursor-pointer"
+              className="relative w-screen md:w-[350px] cursor-pointer"
               onClick={() => handleVideoSelect(suggestedVideo)}
             >
               <div className="border bg-gray-400 w-full h-[220px] md:w-[350px] rounded-md overflow-hidden">
@@ -148,7 +149,10 @@ const PlayerComponent = () => {
                   alt={suggestedVideo.name}
                   className="w-full h-full object-cover"
                 />
-                <h3 className="text-white mt-2">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <IoPlayCircle className="text-white text-6xl" />
+                </div>
+                <h3 className="absolute bottom-2 left-2 text-white bg-black bg-opacity-50 px-2 py-1 rounded">
                   {suggestedVideo.name || "No Title Available"}
                 </h3>
               </div>
