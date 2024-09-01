@@ -130,7 +130,7 @@ const Hero = () => {
             videos.map((video, index) => (
               <div
                 key={index}
-                className="relative w-screen md:w-[450px] h-[220px] md:h-[250px] cursor-pointer pr-4 pl-4 transition-transform duration-300"
+                className="relative w-screen md:w-[250px] h-[220px] md:h-[150px] cursor-pointer pr-4 pl-4 transition-transform duration-300"
                 onClick={() => handleVideoClick(video)}
                 ref={videos.length === index + 1 ? lastVideoRef : null}
               >
