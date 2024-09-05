@@ -6,21 +6,26 @@ import ReactPlayer from "react-player";
 import Loading from "../common/Loading";
 import { IoPlayCircle, IoRefresh } from "react-icons/io5";
 import { FaTelegram } from "react-icons/fa";
+import { FaMale } from "react-icons/fa";
+import { FaFemale } from "react-icons/fa";
 import Header from "../common/Header";
 
 const Hero = () => {
   const [videos, setVideos] = useState([]);
-  const [shuffledVideos, setShuffledVideos] = useState([]); // Store all shuffled videos
+  const [shuffledVideos, setShuffledVideos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0); // Initialize page state
+  const [page, setPage] = useState(0);
   const [allFetched, setAllFetched] = useState(false);
   const [error, setError] = useState(false);
+  const [showUserPopup, setShowUserPopup] = useState(false);
+  const [maleOnline, setMaleOnline] = useState(0);
+  const [femaleOnline, setFemaleOnline] = useState(0);
+
   const navigate = useNavigate();
   const observer = useRef(null);
 
-  const VIDEOS_PER_PAGE = 4; // Number of videos to display per page
+  const VIDEOS_PER_PAGE = 4;
 
-  // Shuffle function
   const shuffleArray = (array) => {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -51,14 +56,10 @@ const Hero = () => {
         })
       );
 
-      // Shuffle all videos initially
       const shuffledVideos = shuffleArray(videoDetails);
-      setShuffledVideos(shuffledVideos); // Store shuffled videos
-
-      // Set initial state with the first page of shuffled videos
+      setShuffledVideos(shuffledVideos);
       setVideos(shuffledVideos.slice(0, VIDEOS_PER_PAGE));
 
-      // Check if all videos have been fetched initially
       if (shuffledVideos.length <= VIDEOS_PER_PAGE) {
         setAllFetched(true);
       }
@@ -72,30 +73,27 @@ const Hero = () => {
 
   useEffect(() => {
     fetchVideos();
-  }, []); // Fetch videos on initial load
+  }, []);
 
   useEffect(() => {
-    if (page === 0) return; // No need to fetch on initial load
+    if (page === 0) return;
 
-    // Load more videos from shuffledVideos
     const loadMoreVideos = () => {
       const startIndex = page * VIDEOS_PER_PAGE;
       const endIndex = startIndex + VIDEOS_PER_PAGE;
 
-      // Paginate through the shuffled list
       setVideos((prevVideos) => [
         ...prevVideos,
         ...shuffledVideos.slice(startIndex, endIndex),
       ]);
 
-      // Check if all videos have been fetched
       if (shuffledVideos.length <= endIndex) {
         setAllFetched(true);
       }
     };
 
     loadMoreVideos();
-  }, [page]); // Load more videos whenever the page changes
+  }, [page]);
 
   const handleVideoClick = (video) => {
     navigate("/player", { state: { video, allVideos: videos } });
@@ -118,6 +116,41 @@ const Hero = () => {
     },
     [loading, allFetched]
   );
+
+  const showUsersOnlinePopup = () => {
+    const maxMaleOnline = 300;
+    const maxFemaleOnline = Math.floor(0.04 * maxMaleOnline); // 4% of males
+
+    // Set realistic baseline values
+    const baselineMaleOnline = 150;
+    const baselineFemaleOnline = Math.floor(0.04 * baselineMaleOnline); // 4% of males
+
+    // Generate new counts with some variability around the baseline
+    const males = Math.max(
+      Math.floor(baselineMaleOnline + Math.random() * 50 - 25), // ±25 variability
+      0
+    );
+    const females = Math.max(
+      Math.floor(baselineFemaleOnline + Math.random() * 10 - 5), // ±5 variability
+      0
+    );
+
+    setMaleOnline(males);
+    setFemaleOnline(females);
+
+    setShowUserPopup(true);
+    setTimeout(() => {
+      setShowUserPopup(false);
+    }, 5000);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(
+      showUsersOnlinePopup,
+      Math.random() * 5000 + 10000
+    );
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="text-white mb-[100px]">
@@ -173,6 +206,26 @@ const Hero = () => {
           </div>
         )}
       </div>
+
+      {/* Online Users Indicator */}
+      {showUserPopup && (
+        <div className="fixed bottom-5 right-5 flex items-center space-x-2 z-50">
+          <div className="bg-black text-white py-2 px-4 rounded-md shadow-lg">
+            <p className="text-sm ">
+              <div className="flex items-center gap-1">
+                <FaMale />
+                {maleOnline}
+                <h1 className="text-green-500">Online</h1>now
+              </div>
+              <div className="flex items-center gap-1">
+                <FaFemale />
+                {femaleOnline}
+                <h1 className="text-green-500">Online</h1>now
+              </div>
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Telegram Icon */}
       <div
