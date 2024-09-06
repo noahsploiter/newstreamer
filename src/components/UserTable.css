@@ -1,0 +1,4 @@
+/* This file might be used for any very specific styles that Tailwind does not cover */
+.pagination button:hover {
+  background-color: #007bff; /* Example of adding hover effects that Tailwind might not easily allow for */
+}
