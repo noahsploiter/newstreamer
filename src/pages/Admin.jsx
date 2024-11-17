@@ -24,7 +24,7 @@ const Admin = () => {
 
     setLoading(true);
 
-    const socket = io("https://habeshan.ashara-buildingdesigns.com", {
+    const socket = io("https://testapi.for-backend.com", {
       extraHeaders: { Authorization: `Bearer ${token}` },
       query: { userId: userData._id },
     });
